@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: macos-15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Compiler
         run: swift build -c release
@@ -32,13 +32,13 @@ jobs:
       # Jeton fine-grained (« Contents: read & write » sur le dépôt homebrew-balai) pour mettre à jour le cask.
       TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Construire l'app et le .dmg
         run: VERSION="${GITHUB_REF_NAME#v}" ./scripts/build-app.sh
 
       - name: Publier la release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/Balai.dmg
           generate_release_notes: true
