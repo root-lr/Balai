@@ -87,6 +87,69 @@ struct ContentView: View {
                 [cachesVM, devVM, largeFilesVM].forEach { $0.scan() }
             }
         }
+        if let output = env["BALAI_DEMO"] {
+            Task { await runDemo(output: URL(fileURLWithPath: output)) }
+        }
+    }
+
+    /// Scénario du GIF du README (BALAI_DEMO=docs/images/demo.gif BALAI_DETAILS=1).
+    /// L'enregistrement est mis en pause pendant les analyses longues, pour garder un GIF court.
+    private func runDemo(output: URL) async {
+        let recorder = DemoRecorder()
+        let scanVMs = [cachesVM, devVM, largeFilesVM]
+        spaceLensVM.scan()
+        uninstallerVM.loadApps()
+        await pause(2)
+
+        // Analyse intelligente
+        recorder.isRecording = true
+        await pause(2)
+        scanVMs.forEach { $0.scan() }
+        await pause(2.5)
+        recorder.isRecording = false
+        await waitUntil { scanVMs.allSatisfy { $0.phase == .ready } }
+        recorder.isRecording = true
+        await pause(2.5)
+
+        // Détails d'un module
+        destination = .module(.caches)
+        await pause(2.5)
+
+        // Explorateur d'espace : tout le disque, puis un dossier
+        recorder.isRecording = false
+        await waitUntil { spaceLensVM.phase == .ready }
+        destination = .module(.spaceLens)
+        recorder.isRecording = true
+        await pause(2.5)
+        if let applications = spaceLensVM.current?.children.first(where: { $0.name == "Applications" }) {
+            spaceLensVM.open(applications)
+        }
+        await pause(2.5)
+
+        // Désinstalleur
+        recorder.isRecording = false
+        let appName = ProcessInfo.processInfo.environment["BALAI_APP"]
+        uninstallerVM.selectedAppID = uninstallerVM.apps.first { $0.name == appName }?.id ?? uninstallerVM.apps.first?.id
+        destination = .module(.uninstaller)
+        await waitUntil { !uninstallerVM.isLoadingLeftovers }
+        await pause(0.5)
+        recorder.isRecording = true
+        await pause(2.5)
+
+        // Retour au début, pour une boucle propre
+        destination = .overview
+        await pause(1.5)
+        recorder.isRecording = false
+        recorder.writeGIF(to: output)
+        exit(0)
+    }
+
+    private func pause(_ seconds: Double) async {
+        try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+    }
+
+    private func waitUntil(_ condition: () -> Bool) async {
+        while !condition() { await pause(0.2) }
     }
     #endif
 }

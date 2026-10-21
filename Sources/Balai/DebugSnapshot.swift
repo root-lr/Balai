@@ -10,13 +10,17 @@ enum DebugSnapshot {
         let delay = Double(env["BALAI_SNAPSHOT_DELAY"] ?? "") ?? 3
 
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            if let window = NSApp.windows.first(where: { $0.isVisible && $0.contentView != nil }),
-               let image = capture(windowID: CGWindowID(window.windowNumber)) {
+            if let image = captureMainWindow() {
                 let rep = NSBitmapImageRep(cgImage: image)
                 try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: path))
             }
             exit(0)
         }
+    }
+
+    static func captureMainWindow() -> CGImage? {
+        guard let window = NSApp.windows.first(where: { $0.isVisible && $0.contentView != nil }) else { return nil }
+        return capture(windowID: CGWindowID(window.windowNumber))
     }
 
     /// CGWindowListCreateImage n'est plus exposé par le SDK, mais reste utilisable pour ses propres fenêtres.

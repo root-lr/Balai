@@ -25,7 +25,7 @@
 
 <br />
 
-<img src="docs/images/smart-scan.png" alt="Balai Smart Scan" width="880" />
+<img src="docs/images/demo.gif" alt="Balai demo: Smart Scan, review, Space Explorer and Uninstaller" width="820" />
 
 </div>
 

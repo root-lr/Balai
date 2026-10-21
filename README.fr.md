@@ -25,7 +25,7 @@
 
 <br />
 
-<img src="docs/images/smart-scan.png" alt="Analyse intelligente de Balai" width="880" />
+<img src="docs/images/demo.gif" alt="Démo de Balai : analyse intelligente, détails, explorateur d'espace et désinstalleur" width="820" />
 
 </div>
 

@@ -84,6 +84,14 @@ BALAI_PAGE=caches BALAI_AUTOSCAN=1 BALAI_SNAPSHOT=/tmp/shot.png swift run
 
 Add `-AppleLanguages "(fr)"` to see the French interface. These hooks only exist in debug builds.
 
+To re-record the README demo (about 2 minutes, mostly the full disk scan), run a debug build:
+
+```bash
+BALAI_DEMO="$PWD/docs/images/demo.gif" BALAI_DETAILS=1 BALAI_APP=Warp swift run Balai -AppleLanguages "(en)"
+```
+
+The scenario lives in `ContentView.runDemo`; recording pauses during long scans to keep the GIF short.
+
 ## Pull request checklist
 
 - [ ] `swift build` and `swift test` pass, with no new warnings
