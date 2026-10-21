@@ -1,0 +1,35 @@
+name: Check Homebrew tap token
+
+# À lancer à la main (onglet Actions) après avoir créé ou renouvelé HOMEBREW_TAP_TOKEN :
+# vérifie que le jeton peut écrire dans le tap, sans rien y modifier.
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Vérifier le jeton
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "::error::Le secret HOMEBREW_TAP_TOKEN n'est pas défini."
+            exit 1
+          fi
+          REPO="${GITHUB_REPOSITORY_OWNER}/homebrew-balai"
+          STATUS=$(curl -s -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${TAP_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}")
+          if [ "$STATUS" != "200" ]; then
+            echo "::error::Jeton refusé par GitHub (HTTP ${STATUS}) : invalide ou expiré."
+            exit 1
+          fi
+          if [ "$(jq -r '.permissions.push' response.json)" != "true" ]; then
+            echo "::error::Le jeton est valide mais ne peut pas écrire dans ${REPO} (Contents : Read and write)."
+            exit 1
+          fi
+          echo "✓ Le jeton peut mettre à jour ${REPO}."
