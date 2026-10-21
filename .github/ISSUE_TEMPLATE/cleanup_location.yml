@@ -1,0 +1,40 @@
+name: 🧹 New cleanup location
+description: Propose a folder or file type Balai should clean
+labels: [cleanup-location]
+body:
+  - type: input
+    id: path
+    attributes:
+      label: Path
+      placeholder: "~/Library/Caches/com.example.app"
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What is it?
+      description: Which app or tool creates it, and what it contains.
+    validations:
+      required: true
+  - type: textarea
+    id: safe
+    attributes:
+      label: Why is it safe to delete?
+      description: Links to docs or well-known discussions are very welcome.
+    validations:
+      required: true
+  - type: dropdown
+    id: regenerates
+    attributes:
+      label: Does it regenerate on its own?
+      options:
+        - Yes, it's a cache or build output
+        - Partly (e.g. re-downloaded when needed)
+        - No, it's gone for good
+    validations:
+      required: true
+  - type: input
+    id: size
+    attributes:
+      label: Typical size
+      placeholder: "2–10 GB"

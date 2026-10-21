@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Balai</string>
+    <key>CFBundleDisplayName</key>
+    <string>Balai</string>
+    <key>CFBundleExecutable</key>
+    <string>Balai</string>
+    <key>CFBundleIdentifier</key>
+    <string>io.github.root-lr.Balai</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>__VERSION__</string>
+    <key>CFBundleVersion</key>
+    <string>__BUILD__</string>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>fr</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>13.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>Balai recherche les gros fichiers et les dossiers node_modules sur votre Bureau.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>Balai recherche les gros fichiers et les dossiers node_modules dans vos Documents.</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>Balai recherche les installeurs et gros fichiers oubliés dans vos Téléchargements.</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>Logiciel libre sous licence MIT.</string>
+</dict>
+</plist>
