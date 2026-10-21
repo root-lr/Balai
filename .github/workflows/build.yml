@@ -57,5 +57,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Casks/balai.rb
+          # Déjà à jour (release relancée) : rien à publier.
+          if git diff --cached --quiet; then
+            echo "Cask déjà à jour"
+            exit 0
+          fi
           git commit -m "balai ${VERSION}"
           git push
