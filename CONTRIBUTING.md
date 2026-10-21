@@ -44,7 +44,8 @@ Sources/Balai/
 ```
 
 - **`SafetyGuard`** is the last check before any deletion. **Never bypass it** and never delete files outside `Deleter`. Changes to `SafetyGuard` need tests in `Tests/BalaiTests/SafetyGuardTests.swift`.
-- **A new cleanup module** is a type conforming to `Scanner` that returns `[CleanupItem]`. `ScanViewModel` and `CleanupModuleView` give you the scan, review, confirmation and deletion flow for free.
+- **Things managed by a tool** (Docker objects, simulator runtimes, Homebrew versions, Ollama models) are never deleted as files: give the item `removal: .tool(name, arguments)` and `Deleter` runs it through `ExternalTool`. Build the arguments only from the tool's own output (IDs, names), never from user-controlled file names, and never offer something the tool reports as in use.
+- **A new cleanup module** is a type conforming to `Scanner` that returns `[CleanupItem]`; add it to `ModuleStore` and the sidebar. `ScanViewModel` and `CleanupModuleView` give you the scan, review, confirmation and deletion flow for free. If the module can't run (tool missing, engine stopped), return a message from `unavailableReason()`.
 - **The interface** uses the components in `Views/Theme.swift` (`HeroPage`, `ScanButton`, `PillButton`, `GhostButton`, `panel()`). Please reuse them rather than styling from scratch, so every screen feels the same.
 
 ## Localization
@@ -76,7 +77,7 @@ BALAI_PAGE=caches BALAI_AUTOSCAN=1 BALAI_SNAPSHOT=/tmp/shot.png swift run
 |---|---|
 | `BALAI_SNAPSHOT=<path>` | Saves a PNG of the window, then quits |
 | `BALAI_SNAPSHOT_DELAY=<s>` | Waits before capturing (default: 3) |
-| `BALAI_PAGE=<module>` | `caches`, `devFiles`, `largeFiles`, `uninstaller`, `spaceLens` |
+| `BALAI_PAGE=<module>` | `caches`, `devFiles`, `containers`, `aiModels`, `virtualMachines`, `spaceLens`, `largeFiles`, `duplicates`, `devices`, `uninstaller`, `orphans`, `startupItems` |
 | `BALAI_AUTOSCAN=1` | Starts the scan on launch |
 | `BALAI_DETAILS=1` | Opens the details list after a module scan |
 | `BALAI_APP=<name>` | Selects an app in the uninstaller |

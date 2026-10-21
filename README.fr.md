@@ -54,12 +54,19 @@
 
 | | Module | Ce qu'il fait |
 |:-:|---|---|
-| ✨ | **Analyse intelligente** | Lance tous les modules de nettoyage d'un coup, montre ce qui peut partir et nettoie la sélection en un clic. |
+| ✨ | **Analyse intelligente** | Lance caches, fichiers développeur, conteneurs et gros fichiers d'un coup, et nettoie la sélection en un clic. |
 | 🗄️ | **Caches et logs** | Caches d'applications, journaux et rapports de plantage de `~/Library`. Les caches système Apple sont marqués *À vérifier* et jamais pré-cochés. |
-| 🔨 | **Fichiers développeur** | DerivedData, DeviceSupport, caches et aperçus des simulateurs Xcode ; caches npm, Yarn, Bun, pnpm, Gradle, Maven, Cargo et CocoaPods ; `node_modules` des projets inactifs depuis un moment. |
+| 🔨 | **Fichiers développeur** | DerivedData, DeviceSupport, **runtimes de simulateurs** et simulateurs orphelins ; caches npm, Yarn, Bun, pnpm, Gradle, Maven, Cargo, CocoaPods, Go, uv et conda ; **anciennes versions Homebrew** ; sorties de build des projets inactifs (`node_modules`, `target` Rust, `.venv`, `.build` Swift, Gradle, `.next`, `Pods`…). |
+| 🐳 | **Conteneurs** | Cache de build Docker, conteneurs arrêtés, images et volumes inutilisés (Docker Desktop, OrbStack, Colima), clusters Kubernetes locaux (minikube, kind, k3d). |
+| 🧠 | **Modèles d'IA** | Modèles téléchargés par Ollama, LM Studio, Hugging Face, GPT4All, Jan, Whisper, PyTorch et Draw Things. |
+| 🖥️ | **Machines virtuelles** | UTM, Parallels, VMware Fusion, VirtualBox, émulateurs et images système Android, Vagrant, Lima, Colima, Podman, Tart. |
 | 🫧 | **Explorateur d'espace** | **Tout votre Mac** en bulles interactives, dossier par dossier : volume système, volume de données, swap, Preboot… Descendez, repérez ce qui pèse lourd, supprimez-le. |
 | 📄 | **Gros fichiers** | Les fichiers volumineux qui dorment dans votre dossier personnel, classés par type : installeurs, vidéos, archives… |
+| 👯 | **Doublons** | Fichiers identiques octet pour octet dans votre dossier personnel. La copie la plus ancienne est toujours conservée ; les clones APFS (qui partagent leur espace) sont ignorés. |
+| 📱 | **iPhone et iPad** | Anciennes sauvegardes d'appareils et mises à jour iOS téléchargées. |
 | 🧩 | **Désinstalleur** | Supprime une app **et** tout ce qu'elle a laissé dans `~/Library` : préférences, caches, conteneurs, état des fenêtres, agents de lancement… |
+| 🧷 | **Restes d'apps** | Caches, préférences et données laissés par des apps déjà supprimées. |
+| ⏻ | **Démarrage** | Agents lancés à l'ouverture de session ; ceux dont l'app a disparu sont pré-cochés. |
 | 🌍 | **Français et anglais** | Suit la langue du système, ou choisissez dans les Réglages. |
 
 <div align="center">
@@ -93,6 +100,8 @@ Un nettoyeur auquel on ne peut pas faire confiance est pire que pas de nettoyeur
   - seuls votre dossier personnel et les apps tierces (`.app`) de `/Applications` peuvent être supprimés ;
   - **toujours refusés :** dossiers système, apps Apple, trousseaux, `~/.ssh`, `~/.gnupg`, comptes, contacts, calendriers, données Safari, Mail, Messages, iCloud Drive et stockage cloud ;
   - les chemins sont normalisés (`..`, dossiers parents en lien symbolique) et comparés sans tenir compte de la casse, comme le fait le système de fichiers.
+- **Ce qui est géré par un outil passe par cet outil.** Images et conteneurs Docker, runtimes de simulateurs, versions Homebrew et modèles Ollama sont supprimés avec `docker`, `xcrun simctl`, `brew` et `ollama`, jamais en effaçant leurs fichiers. Ce qui sert encore (conteneurs en marche, images qu'ils utilisent, volumes rattachés) n'est jamais proposé, et les volumes Docker, qui contiennent vos données, ne sont jamais pré-cochés.
+- **Les doublons gardent toujours une copie** : la plus ancienne est l'original et n'est jamais proposée, donc cocher tout un groupe ne peut pas supprimer toutes les copies.
 - **L'Explorateur d'espace montre tout, mais verrouille ce qu'il ne doit pas toucher** 🔒.
 - **Pas d'accès réseau, pas de télémétrie, pas de compte, pas de processus en arrière-plan.**
 
@@ -166,12 +175,12 @@ Ajouter un module de nettoyage = écrire un type conforme à `Scanner` qui renvo
 
 - [x] Analyse intelligente, caches, fichiers développeur, gros fichiers, désinstalleur
 - [x] Explorateur d'espace pour tout le disque
+- [x] Conteneurs (Docker, Kubernetes), modèles d'IA, machines virtuelles
+- [x] Doublons, restes d'apps, démarrage, sauvegardes iPhone et iPad
 - [x] Français et anglais
 - [x] Cask Homebrew
 - [ ] Builds notarisés
-- [ ] Restes orphelins (fichiers d'apps déjà supprimées)
-- [ ] Recherche de doublons
-- [ ] Nettoyage des images Docker et des simulateurs iOS
+- [ ] Suppression des restes système (`/Library`) avec autorisation administrateur
 - [ ] Widget de barre des menus avec l'espace libre
 - [ ] Plus de langues
 

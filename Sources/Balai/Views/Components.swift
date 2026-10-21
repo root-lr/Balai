@@ -91,7 +91,7 @@ struct ItemRow: View {
             Toggle("", isOn: $isOn)
                 .toggleStyle(.checkbox)
                 .labelsHidden()
-            FileIcon(url: item.url, size: 30)
+            ItemIcon(item: item, size: 30)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(item.name)
@@ -128,15 +128,40 @@ struct ItemRow: View {
         .contentShape(Rectangle())
         .onTapGesture { isOn.toggle() }
         .onHover { isHovered = $0 }
-        .help(item.url.path)
+        .help(item.url.isFileURL ? item.url.path : item.detail ?? item.name)
         .contextMenu {
-            Button(L("Afficher dans le Finder", "Show in Finder")) {
-                NSWorkspace.shared.activateFileViewerSelecting([item.url])
+            if item.url.isFileURL {
+                Button(L("Afficher dans le Finder", "Show in Finder")) {
+                    NSWorkspace.shared.activateFileViewerSelecting([item.url])
+                }
+                Button(L("Copier le chemin", "Copy Path")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(item.url.path, forType: .string)
+                }
+            } else {
+                Button(L("Copier le nom", "Copy Name")) {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(item.name, forType: .string)
+                }
             }
-            Button(L("Copier le chemin", "Copy Path")) {
-                NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(item.url.path, forType: .string)
-            }
+        }
+    }
+}
+
+/// Icône du Finder pour un fichier, symbole sur une petite tuile pour le reste (image Docker, runtime…).
+struct ItemIcon: View {
+    let item: CleanupItem
+    var size: CGFloat = 30
+
+    var body: some View {
+        if let symbol = item.symbol {
+            Image(systemName: symbol)
+                .font(.system(size: size * 0.46, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(width: size, height: size)
+                .background(Color.white.opacity(0.16), in: RoundedRectangle(cornerRadius: size * 0.26, style: .continuous))
+        } else {
+            FileIcon(url: item.url, size: size)
         }
     }
 }
@@ -268,6 +293,20 @@ struct ReportRow: View {
 // MARK: - Confirmation
 
 struct DeleteConfirmationView: View {
+    /// Avertissements à afficher pour une sélection : éléments « À vérifier », suppressions sans Corbeille.
+    static func warning(for items: [CleanupItem]) -> String? {
+        var lines: [String] = []
+        if items.contains(where: { $0.risk == .review }) {
+            lines.append(L("Certains éléments sélectionnés sont marqués « À vérifier ».",
+                           "Some selected items are marked “Review”."))
+        }
+        if items.contains(where: { !$0.removal.isFile }) {
+            lines.append(L("Images, conteneurs, runtimes et modèles sont supprimés définitivement par leur outil, sans passer par la Corbeille.",
+                           "Images, containers, runtimes and models are removed permanently by their own tool, without going through the Trash."))
+        }
+        return lines.isEmpty ? nil : lines.joined(separator: "\n")
+    }
+
     let theme: Theme
     let title: String
     let count: Int

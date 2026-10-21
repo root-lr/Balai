@@ -54,12 +54,19 @@
 
 | | Module | What it does |
 |:-:|---|---|
-| ✨ | **Smart Scan** | Runs every cleanup module at once, shows what can go, cleans the selection in one click. |
+| ✨ | **Smart Scan** | Runs caches, developer files, containers and large files at once, cleans the selection in one click. |
 | 🗄️ | **Caches & Logs** | App caches, logs and crash reports from `~/Library`. Apple system caches are flagged *Review* and never pre-selected. |
-| 🔨 | **Developer Files** | Xcode DerivedData, DeviceSupport, simulator caches and previews; npm, Yarn, Bun, pnpm, Gradle, Maven, Cargo and CocoaPods caches; `node_modules` of projects you haven't touched in a while. |
+| 🔨 | **Developer Files** | Xcode DerivedData, DeviceSupport, **simulator runtimes** and orphaned simulators; npm, Yarn, Bun, pnpm, Gradle, Maven, Cargo, CocoaPods, Go, uv and conda caches; **old Homebrew versions**; build outputs of idle projects (`node_modules`, Rust `target`, `.venv`, Swift `.build`, Gradle, `.next`, `Pods`…). |
+| 🐳 | **Containers** | Docker build cache, stopped containers, unused images and volumes (Docker Desktop, OrbStack, Colima), local Kubernetes clusters (minikube, kind, k3d). |
+| 🧠 | **AI Models** | Models downloaded by Ollama, LM Studio, Hugging Face, GPT4All, Jan, Whisper, PyTorch and Draw Things. |
+| 🖥️ | **Virtual Machines** | UTM, Parallels, VMware Fusion, VirtualBox, Android emulators and system images, Vagrant, Lima, Colima, Podman, Tart. |
 | 🫧 | **Space Explorer** | Your **whole Mac** as interactive bubbles, folder by folder: system volume, data volume, swap, Preboot… Drill down, spot what's heavy, remove it. |
 | 📄 | **Large Files** | Big files sleeping in your home folder, grouped by type: installers, videos, archives… |
+| 👯 | **Duplicates** | Byte-identical files in your home folder. The oldest copy is always kept; APFS clones (which share their space) are ignored. |
+| 📱 | **iPhone & iPad** | Old device backups and downloaded iOS updates. |
 | 🧩 | **Uninstaller** | Removes an app **and** everything it left in `~/Library`: preferences, caches, containers, saved state, launch agents… |
+| 🧷 | **App Leftovers** | Caches, preferences and data left behind by apps you already deleted. |
+| ⏻ | **Startup Items** | Agents launched at login, with the ones whose app is gone pre-selected. |
 | 🌍 | **English & French** | Follows your system language, or pick one in Settings. |
 
 <div align="center">
@@ -93,6 +100,8 @@ A cleaner you can't trust is worse than no cleaner. Balai is built around that:
   - only your home folder and third-party `.app` bundles in `/Applications` can be removed;
   - **always refused:** system folders, Apple apps, Keychains, `~/.ssh`, `~/.gnupg`, accounts, contacts, calendars, Safari data, Mail, Messages, iCloud Drive and cloud storage;
   - paths are normalized (`..`, symlinked parents) and compared case-insensitively, like the file system does.
+- **Tool-managed items go through their own tool.** Docker images and containers, simulator runtimes, Homebrew versions and Ollama models are removed with `docker`, `xcrun simctl`, `brew` and `ollama`, never by deleting their files. Anything still in use (running containers, images they need, attached volumes) is never offered, and Docker volumes, which hold your data, are never pre-selected.
+- **Duplicates always keep one copy**: the oldest is the original and is never offered, so selecting a whole group can't remove every copy.
 - **The Space Explorer shows everything but locks what it shouldn't touch** 🔒.
 - **No network, no telemetry, no account, no background process.**
 
@@ -166,12 +175,12 @@ Adding a cleanup module = writing a type that conforms to `Scanner` and returns 
 
 - [x] Smart Scan, caches, developer files, large files, uninstaller
 - [x] Space Explorer for the whole disk
+- [x] Containers (Docker, Kubernetes), AI models, virtual machines
+- [x] Duplicates, app leftovers, startup items, iPhone & iPad backups
 - [x] English & French
 - [x] Homebrew Cask
 - [ ] Notarized builds
-- [ ] Orphaned leftovers (files from apps already deleted)
-- [ ] Duplicate finder
-- [ ] Docker images & iOS simulators cleanup
+- [ ] Admin-authorized removal of system-wide leftovers (`/Library`)
 - [ ] Menu bar widget with free space
 - [ ] More languages
 

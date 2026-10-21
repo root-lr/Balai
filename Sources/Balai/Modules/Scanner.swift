@@ -4,4 +4,10 @@ import Foundation
 /// vérifier régulièrement `Task.isCancelled`.
 protocol Scanner: Sendable {
     func scan(progress: @escaping @Sendable (String) -> Void) async -> [CleanupItem]
+    /// Raison pour laquelle le module ne peut rien analyser (outil absent, moteur arrêté…), ou `nil`.
+    func unavailableReason() async -> String?
+}
+
+extension Scanner {
+    func unavailableReason() async -> String? { nil }
 }

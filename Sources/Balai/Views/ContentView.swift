@@ -5,17 +5,11 @@ struct ContentView: View {
     /// Observé pour redessiner toute l'interface quand la langue change dans les Réglages.
     @AppStorage(Defaults.language) private var language = AppLanguage.system.rawValue
 
-    @StateObject private var cachesVM = ScanViewModel { CacheScanner() }
-    @StateObject private var devVM = ScanViewModel { DevScanner(staleDays: Defaults.staleDays) }
-    @StateObject private var largeFilesVM = ScanViewModel {
-        LargeFileScanner(thresholdBytes: Defaults.largeFileThresholdBytes)
-    }
-    @StateObject private var uninstallerVM = UninstallerViewModel()
-    @StateObject private var spaceLensVM = SpaceLensViewModel()
+    @StateObject private var store = ModuleStore()
 
     var body: some View {
         HStack(spacing: 0) {
-            Sidebar(selection: $destination) { badge(for: $0) }
+            Sidebar(selection: $destination) { store.badge(for: $0) }
             detail
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -40,51 +34,33 @@ struct ContentView: View {
     private var detail: some View {
         switch destination {
         case .overview:
-            OverviewView(cachesVM: cachesVM, devVM: devVM, largeFilesVM: largeFilesVM) { destination = .module($0) }
+            OverviewView(store: store) { destination = .module($0) }
         case .module(.uninstaller):
-            UninstallerView(vm: uninstallerVM)
+            UninstallerView(vm: store.uninstaller)
         case .module(.spaceLens):
-            SpaceLensView(vm: spaceLensVM)
+            SpaceLensView(vm: store.spaceLens)
         case .module(let category):
-            CleanupModuleView(category: category, vm: scanVM(for: category))
-                .id(category)
-        }
-    }
-
-    private func scanVM(for category: CleanupCategory) -> ScanViewModel {
-        switch category {
-        case .devFiles: return devVM
-        case .largeFiles: return largeFilesVM
-        default: return cachesVM
-        }
-    }
-
-    /// Taille trouvée par la dernière analyse, affichée dans la barre latérale.
-    private func foundSize(in vm: ScanViewModel) -> String? {
-        guard vm.phase == .ready, !vm.items.isEmpty else { return nil }
-        return Format.bytes(vm.totalSize)
-    }
-
-    private func badge(for category: CleanupCategory) -> String? {
-        switch category {
-        case .caches, .devFiles, .largeFiles: return foundSize(in: scanVM(for: category))
-        case .spaceLens: return spaceLensVM.root.map { Format.bytes($0.size) }
-        case .uninstaller: return nil
+            if let viewModel = store.scanner(category) {
+                CleanupModuleView(category: category, vm: viewModel)
+                    .id(category)
+            }
         }
     }
 
     #if DEBUG
-    /// BALAI_PAGE=caches|devFiles|largeFiles|uninstaller, BALAI_AUTOSCAN=1 (voir DebugSnapshot).
+    /// BALAI_PAGE=<module> (caches, containers, aiModels…), BALAI_AUTOSCAN=1 (voir DebugSnapshot).
     private func applyDebugLaunchOptions() {
         let env = ProcessInfo.processInfo.environment
         if let page = env["BALAI_PAGE"], let category = CleanupCategory(rawValue: page) {
             destination = .module(category)
         }
         if env["BALAI_AUTOSCAN"] == "1" {
-            if destination == .module(.spaceLens) {
-                spaceLensVM.scan()
+            if case .module(let category) = destination, let viewModel = store.scanner(category) {
+                viewModel.scan()
+            } else if destination == .module(.spaceLens) {
+                store.spaceLens.scan()
             } else {
-                [cachesVM, devVM, largeFilesVM].forEach { $0.scan() }
+                ModuleStore.smartScan.compactMap(store.scanner).forEach { $0.scan() }
             }
         }
         if let output = env["BALAI_DEMO"] {
@@ -96,9 +72,9 @@ struct ContentView: View {
     /// L'enregistrement est mis en pause pendant les analyses longues, pour garder un GIF court.
     private func runDemo(output: URL) async {
         let recorder = DemoRecorder()
-        let scanVMs = [cachesVM, devVM, largeFilesVM]
-        spaceLensVM.scan()
-        uninstallerVM.loadApps()
+        let scanVMs = ModuleStore.smartScan.compactMap(store.scanner)
+        store.spaceLens.scan()
+        store.uninstaller.loadApps()
         await pause(2)
 
         // Analyse intelligente
@@ -117,21 +93,21 @@ struct ContentView: View {
 
         // Explorateur d'espace : tout le disque, puis un dossier
         recorder.isRecording = false
-        await waitUntil { spaceLensVM.phase == .ready }
+        await waitUntil { store.spaceLens.phase == .ready }
         destination = .module(.spaceLens)
         recorder.isRecording = true
         await pause(2.5)
-        if let applications = spaceLensVM.current?.children.first(where: { $0.name == "Applications" }) {
-            spaceLensVM.open(applications)
+        if let applications = store.spaceLens.current?.children.first(where: { $0.name == "Applications" }) {
+            store.spaceLens.open(applications)
         }
         await pause(2.5)
 
         // Désinstalleur
         recorder.isRecording = false
         let appName = ProcessInfo.processInfo.environment["BALAI_APP"]
-        uninstallerVM.selectedAppID = uninstallerVM.apps.first { $0.name == appName }?.id ?? uninstallerVM.apps.first?.id
+        store.uninstaller.selectedAppID = store.uninstaller.apps.first { $0.name == appName }?.id ?? store.uninstaller.apps.first?.id
         destination = .module(.uninstaller)
-        await waitUntil { !uninstallerVM.isLoadingLeftovers }
+        await waitUntil { !store.uninstaller.isLoadingLeftovers }
         await pause(0.5)
         recorder.isRecording = true
         await pause(2.5)

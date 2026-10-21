@@ -45,6 +45,27 @@ extension CleanupCategory {
         case .spaceLens:
             return Theme(top: Color(hex: 0x5B2A9E), bottom: Color(hex: 0x1C1050),
                          accent: Color(hex: 0xFF4FD8), art: [Color(hex: 0xFF9BEA), Color(hex: 0xB03FE0)])
+        case .containers:
+            return Theme(top: Color(hex: 0x1D63ED), bottom: Color(hex: 0x0B2A5C),
+                         accent: Color(hex: 0x4FC3F7), art: [Color(hex: 0x7FD8FF), Color(hex: 0x1D63ED)])
+        case .aiModels:
+            return Theme(top: Color(hex: 0x3A47D5), bottom: Color(hex: 0x12123A),
+                         accent: Color(hex: 0x00D2FF), art: [Color(hex: 0x8EE8FF), Color(hex: 0x3A47D5)])
+        case .virtualMachines:
+            return Theme(top: Color(hex: 0x475569), bottom: Color(hex: 0x0F172A),
+                         accent: Color(hex: 0x94A3B8), art: [Color(hex: 0xCBD5E1), Color(hex: 0x64748B)])
+        case .devices:
+            return Theme(top: Color(hex: 0xDB2777), bottom: Color(hex: 0x4A0D2E),
+                         accent: Color(hex: 0xF9A8D4), art: [Color(hex: 0xFBCFE8), Color(hex: 0xDB2777)])
+        case .duplicates:
+            return Theme(top: Color(hex: 0x4D7C0F), bottom: Color(hex: 0x14290A),
+                         accent: Color(hex: 0xA3E635), art: [Color(hex: 0xD9F99D), Color(hex: 0x65A30D)])
+        case .orphans:
+            return Theme(top: Color(hex: 0xB91C1C), bottom: Color(hex: 0x3F0A12),
+                         accent: Color(hex: 0xFCA5A5), art: [Color(hex: 0xFECACA), Color(hex: 0xDC2626)])
+        case .startupItems:
+            return Theme(top: Color(hex: 0x0E7490), bottom: Color(hex: 0x082F49),
+                         accent: Color(hex: 0x67E8F9), art: [Color(hex: 0xA5F3FC), Color(hex: 0x0891B2)])
         }
     }
 
@@ -56,6 +77,13 @@ extension CleanupCategory {
         case .largeFiles: return "doc.fill"
         case .uninstaller: return "xmark.app.fill"
         case .spaceLens: return "circle.hexagongrid.fill"
+        case .containers: return "shippingbox.fill"
+        case .aiModels: return "brain"
+        case .virtualMachines: return "desktopcomputer"
+        case .devices: return "iphone"
+        case .duplicates: return "doc.on.doc.fill"
+        case .orphans: return "puzzlepiece.fill"
+        case .startupItems: return "power"
         }
     }
 }

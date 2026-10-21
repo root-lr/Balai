@@ -24,6 +24,8 @@ final class ScanViewModel: ObservableObject {
     @Published var selection: Set<URL> = []
     @Published private(set) var phase: Phase = .idle
     @Published var report: DeletionReport?
+    /// Message du module quand il ne peut rien analyser (outil absent, moteur arrêté…).
+    @Published private(set) var notice: String?
 
     private let makeScanner: () -> any Scanner
     private var task: Task<Void, Never>?
@@ -86,8 +88,17 @@ final class ScanViewModel: ObservableObject {
         }
 
         task = Task { [weak self] in
+            if let reason = await scanner.unavailableReason() {
+                guard let self, !Task.isCancelled else { return }
+                self.notice = reason
+                self.items = []
+                self.selection = []
+                self.phase = .ready
+                return
+            }
             let found = await scanner.scan(progress: progress)
             guard let self, !Task.isCancelled else { return }
+            self.notice = nil
             self.items = found
             self.selection = Set(found.filter(\.preselected).map(\.id))
             self.phase = .ready

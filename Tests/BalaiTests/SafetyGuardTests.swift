@@ -118,3 +118,25 @@ final class LeftoverMatcherTests: XCTestCase {
         XCTAssertTrue(match("com.example.Editor.binarycookies", .cookies))
     }
 }
+
+final class FormatTests: XCTestCase {
+    /// Tailles telles qu'affichées par `docker system df` (base 1000) et `brew cleanup` (base 1024).
+    func testParseSize() {
+        XCTAssertEqual(Format.parseSize("1.063GB"), 1_063_000_000)
+        XCTAssertEqual(Format.parseSize("242kB (virtual 866MB)"), 242_000)
+        XCTAssertEqual(Format.parseSize("0B"), 0)
+        XCTAssertEqual(Format.parseSize("33.5MB", base: 1024), Int64(33.5 * 1024 * 1024))
+        XCTAssertEqual(Format.parseSize("2GiB"), 2 * 1024 * 1024 * 1024)
+        XCTAssertEqual(Format.parseSize("n/a"), 0)
+    }
+}
+
+final class RemovalTests: XCTestCase {
+    /// Un conteneur doit être supprimé avant son image, une image avant le cache de build.
+    func testToolRemovalsKeepTheirOrder() {
+        XCTAssertLessThan(Removal.tool("docker", ["rm", "c"], order: 0).order, Removal.tool("docker", ["rmi", "i"], order: 1).order)
+        XCTAssertTrue(Removal.file.isFile)
+        XCTAssertTrue(Removal.launchAgent(label: "com.example.agent").isFile)
+        XCTAssertFalse(Removal.tool("docker", ["rm", "c"]).isFile)
+    }
+}

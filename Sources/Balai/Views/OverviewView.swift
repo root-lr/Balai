@@ -1,10 +1,8 @@
 import SwiftUI
 
-/// Analyse intelligente : lance les trois analyses d'un coup et nettoie la sélection en une fois.
+/// Analyse intelligente : lance plusieurs modules d'un coup et nettoie la sélection en une fois.
 struct OverviewView: View {
-    @ObservedObject var cachesVM: ScanViewModel
-    @ObservedObject var devVM: ScanViewModel
-    @ObservedObject var largeFilesVM: ScanViewModel
+    @ObservedObject var store: ModuleStore
     let onOpen: (CleanupCategory) -> Void
 
     @State private var showConfirmation = false
@@ -12,7 +10,7 @@ struct OverviewView: View {
     private let theme = Theme.overview
 
     private var modules: [(category: CleanupCategory, vm: ScanViewModel)] {
-        [(.caches, cachesVM), (.devFiles, devVM), (.largeFiles, largeFilesVM)]
+        ModuleStore.smartScan.compactMap { category in store.scanner(category).map { (category, $0) } }
     }
 
     private var vms: [ScanViewModel] { modules.map(\.vm) }
@@ -38,10 +36,7 @@ struct OverviewView: View {
                     title: L("Nettoyer la sélection ?", "Clean up the selection?"),
                     count: selectedCount,
                     size: selectedSize,
-                    warning: vms.contains { $0.selectedItems.contains { $0.risk == .review } }
-                        ? L("Certains éléments sélectionnés sont marqués « À vérifier ».",
-                            "Some selected items are marked “Review”.")
-                        : nil,
+                    warning: DeleteConfirmationView.warning(for: vms.flatMap(\.selectedItems)),
                     onConfirm: { mode in vms.forEach { $0.delete(mode: mode) } }
                 )
             }
@@ -94,7 +89,7 @@ struct OverviewView: View {
                     ResultCard(category: module.category, vm: module.vm) { onOpen(module.category) }
                 }
             }
-            .frame(maxWidth: 760)
+            .frame(maxWidth: 880)
         } extra: {
             GhostButton(title: L("Analyser à nouveau", "Scan Again"), systemImage: "arrow.clockwise") {
                 vms.forEach { $0.scan() }

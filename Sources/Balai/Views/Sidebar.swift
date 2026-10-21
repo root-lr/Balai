@@ -9,23 +9,16 @@ struct Sidebar: View {
     @State private var disk = DiskInfo.current()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            row(.overview, title: L("Analyse intelligente", "Smart Scan"), symbol: "sparkles")
-
-            sectionHeader(L("Nettoyage", "Cleanup"))
-            ForEach([CleanupCategory.caches, .devFiles]) { category in
-                row(.module(category), title: category.title, symbol: category.symbol, badge: badge(category))
+        VStack(alignment: .leading, spacing: 12) {
+            // Treize modules : la liste défile sur les petits écrans, la jauge du disque reste en bas.
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 2) {
+                    row(.overview, title: L("Analyse intelligente", "Smart Scan"), symbol: "sparkles")
+                    section(L("Nettoyage", "Cleanup"), [.caches, .devFiles, .containers, .aiModels, .virtualMachines])
+                    section(L("Fichiers", "Files"), [.spaceLens, .largeFiles, .duplicates, .devices])
+                    section(L("Applications", "Applications"), [.uninstaller, .orphans, .startupItems])
+                }
             }
-
-            sectionHeader(L("Fichiers", "Files"))
-            ForEach([CleanupCategory.spaceLens, .largeFiles]) { category in
-                row(.module(category), title: category.title, symbol: category.symbol, badge: badge(category))
-            }
-
-            sectionHeader(L("Applications", "Applications"))
-            row(.module(.uninstaller), title: CleanupCategory.uninstaller.title, symbol: CleanupCategory.uninstaller.symbol)
-
-            Spacer(minLength: 16)
             diskGauge
         }
         .padding(.horizontal, 12)
@@ -40,13 +33,21 @@ struct Sidebar: View {
         .onReceive(NotificationCenter.default.publisher(for: .balaiDidDelete)) { _ in disk = .current() }
     }
 
+    @ViewBuilder
+    private func section(_ title: String, _ categories: [CleanupCategory]) -> some View {
+        sectionHeader(title)
+        ForEach(categories) { category in
+            row(.module(category), title: category.title, symbol: category.symbol, badge: badge(category))
+        }
+    }
+
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 11, weight: .semibold))
             .foregroundStyle(.white.opacity(0.5))
             .padding(.horizontal, 10)
-            .padding(.top, 16)
-            .padding(.bottom, 4)
+            .padding(.top, 14)
+            .padding(.bottom, 3)
     }
 
     private func row(_ destination: Destination, title: String, symbol: String, badge: String? = nil) -> some View {
@@ -116,7 +117,7 @@ private struct SidebarRow: View {
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 10)
-            .padding(.vertical, 7)
+            .padding(.vertical, 6)
             .background(Color.white.opacity(isSelected ? 0.18 : (isHovered ? 0.07 : 0)),
                         in: RoundedRectangle(cornerRadius: 9, style: .continuous))
             .contentShape(Rectangle())

@@ -21,10 +21,7 @@ struct CleanupModuleView: View {
                     title: L("Nettoyer \(category.title.lowercased()) ?", "Clean up \(category.title.lowercased())?"),
                     count: vm.selection.count,
                     size: vm.selectedSize,
-                    warning: vm.selectedItems.contains { $0.risk == .review }
-                        ? L("Certains éléments sélectionnés sont marqués « À vérifier ».",
-                            "Some selected items are marked “Review”.")
-                        : nil,
+                    warning: DeleteConfirmationView.warning(for: vm.selectedItems),
                     onConfirm: { vm.delete(mode: $0) }
                 )
             }
@@ -67,6 +64,14 @@ struct CleanupModuleView: View {
         case .ready:
             if let report = vm.report {
                 completion(report)
+            } else if let notice = vm.notice {
+                HeroPage(title: L("Rien à analyser pour l'instant", "Nothing to scan right now"), subtitle: notice) {
+                    HeroArt(symbol: "exclamationmark", colors: [Color(hex: 0xFFD180), Color(hex: 0xF57C00)])
+                } extra: {
+                    EmptyView()
+                } action: {
+                    ScanButton(title: L("Réessayer", "Retry"), accent: theme.accent) { vm.scan() }
+                }
             } else if vm.items.isEmpty {
                 HeroPage(title: L("Tout est propre", "All clean"),
                          subtitle: L("Rien à nettoyer ici pour le moment.", "Nothing to clean up here right now.")) {
@@ -88,12 +93,15 @@ struct CleanupModuleView: View {
 
     private var summary: some View {
         HeroPage(title: L("Analyse terminée", "Scan complete"),
-                 subtitle: L("\(vm.items.count) élément(s) trouvé(s) · \(Format.bytes(vm.totalSize))",
-                             "\(vm.items.count) item(s) found · \(Format.bytes(vm.totalSize))")) {
+                 subtitle: category.measuresSpace
+                    ? L("\(vm.items.count) élément(s) trouvé(s) · \(Format.bytes(vm.totalSize))",
+                        "\(vm.items.count) item(s) found · \(Format.bytes(vm.totalSize))")
+                    : L("\(vm.items.count) élément(s) trouvé(s)", "\(vm.items.count) item(s) found")) {
             HeroArt(symbol: category.artSymbol, colors: theme.art, size: 150)
         } extra: {
             VStack(spacing: 4) {
-                Text(Format.bytes(vm.selectedSize))
+                // Pour le démarrage, on compte des agents : leur poids n'a pas de sens.
+                Text(category.measuresSpace ? Format.bytes(vm.selectedSize) : "\(vm.selection.count)")
                     .font(.system(size: 46, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .monospacedDigit()
@@ -171,7 +179,7 @@ struct CleanupModuleView: View {
         } extra: {
             VStack(alignment: .leading, spacing: 4) {
                 ForEach(report.failures.prefix(3)) { failure in
-                    Text("\(Format.abbreviate(failure.url)) — \(failure.reason)")
+                    Text("\(failure.name ?? Format.abbreviate(failure.url)) — \(failure.reason)")
                         .font(.system(size: 11))
                         .foregroundStyle(.white.opacity(0.6))
                         .lineLimit(1)

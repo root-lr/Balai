@@ -91,12 +91,29 @@ enum FileScanning {
 }
 
 enum Format {
+    /// « 1.063GB », « 242kB (virtual 866MB) », « 33.5MB » → octets. `base` : 1000 pour Docker, 1024 pour Homebrew.
+    static func parseSize(_ text: String, base: Double = 1000) -> Int64 {
+        let token = text.split(separator: " ").first.map(String.init) ?? text
+        let units: [(suffix: String, power: Double)] = [
+            ("KiB", 1), ("MiB", 2), ("GiB", 3), ("TiB", 4),
+            ("kB", 1), ("KB", 1), ("MB", 2), ("GB", 3), ("TB", 4), ("B", 0),
+        ]
+        for unit in units where token.hasSuffix(unit.suffix) {
+            let number = token.dropLast(unit.suffix.count).replacingOccurrences(of: ",", with: "")
+            guard let value = Double(number) else { return 0 }
+            let unitBase = unit.suffix.hasSuffix("iB") ? 1024 : base
+            return Int64(value * pow(unitBase, unit.power))
+        }
+        return 0
+    }
+
     static func bytes(_ value: Int64) -> String {
         value.formatted(.byteCount(style: .file, spellsOutZero: false).locale(AppLanguage.resolved.locale))
     }
 
     /// Remplace le dossier personnel par « ~ » pour l'affichage.
     static func abbreviate(_ url: URL) -> String {
+        guard url.isFileURL else { return url.lastPathComponent }
         let path = url.path
         let home = Paths.home.path
         if path == home { return "~" }
